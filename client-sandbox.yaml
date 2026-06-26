@@ -1,0 +1,25 @@
+workspaces:
+- name: client
+  checkouts:
+  - path: hello
+    manifest:
+      overlays:
+      - name: client
+        inline:
+          hooks:
+            build:
+              cmd: |
+                echo "client: build step intentionally skipped"
+            post-checkout:
+              cmd: |
+                set -e
+                # Replace with your mirror's INTERNAL endpoint host
+                # (cs sandbox show mirror -> the *.sandboxes.internal URL).
+                MIRROR_HOST="__MIRROR_HOST__"
+                curl -k -fsSL "https://${MIRROR_HOST}/hello.tar.gz" -o /tmp/hello.tar.gz
+                rm -rf /home/owner/hello
+                tar xzf /tmp/hello.tar.gz -C /home/owner
+                cd /home/owner/hello
+                git config --global --add safe.directory /home/owner/hello || true
+                git status
+                git pull --ff-only || true

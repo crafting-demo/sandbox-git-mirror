@@ -1,0 +1,53 @@
+workspaces:
+- name: mirror
+  ports:
+  - name: http
+    port: 8000
+    protocol: HTTP/TCP
+  checkouts:
+  - path: hello
+    repo:
+      git: https://github.com/crafting-test1/hello.git
+    manifest:
+      overlays:
+      - name: mirror
+        inline:
+          hooks:
+            build:
+              cmd: |
+                echo "mirror: build step intentionally skipped"
+            post-checkout:
+              cmd: |
+                set -e
+                mkdir -p /home/owner/mirror-out
+                cd /home/owner
+                tar czf /home/owner/mirror-out/hello.tar.gz.tmp hello
+                mv /home/owner/mirror-out/hello.tar.gz.tmp /home/owner/mirror-out/hello.tar.gz
+          daemons:
+            fileserver:
+              run:
+                cmd: |
+                  mkdir -p /home/owner/mirror-out
+                  exec python3 -m http.server 8000 --directory /home/owner/mirror-out
+          jobs:
+            nightly-mirror:
+              schedule: "0 22 * * *"
+              run:
+                cmd: |
+                  set -e
+                  cd /home/owner/hello
+                  git pull --ff-only
+                  cd /home/owner
+                  tar czf /home/owner/mirror-out/hello.tar.gz.tmp hello
+                  mv /home/owner/mirror-out/hello.tar.gz.tmp /home/owner/mirror-out/hello.tar.gz
+endpoints:
+- name: mirror
+  type: INTERNAL
+  http:
+    auth_proxy:
+      disabled: true
+    routes:
+    - path_prefix: /
+      backend:
+        target: mirror
+        port: http
