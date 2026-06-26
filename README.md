@@ -1,8 +1,8 @@
 # Sandbox Git Mirror
 
 A pinned **mirror** sandbox that checks out a repo, refreshes it nightly, and serves a
-compressed snapshot (including `.git`) over an **internal-only** HTTPS endpoint. A
-**client** sandbox then seeds its checkout from that snapshot instead of cloning from
+compressed archive (including `.git`) over an **internal-only** HTTPS endpoint. A
+**client** sandbox then seeds its checkout from that archive instead of cloning from
 GitHub on every creation.
 
 Why: a direct `git clone` egresses through the AWS NAT Gateway on every sandbox. Here the
@@ -17,7 +17,7 @@ ever touches the network.
   (auth proxy disabled).
 - **`client-sandbox.yaml`** — a repo-less `path` checkout whose `post-checkout` hook
   `curl -k`s the tarball from the mirror, unpacks it, and runs `git pull` for the delta.
-  `origin` comes from the snapshot's `.git`, so no Git remote is declared.
+  `origin` comes from the archive's `.git`, so no Git remote is declared.
 
 ## Setup (3 steps)
 
