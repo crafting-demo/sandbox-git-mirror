@@ -13,16 +13,12 @@ workspaces:
       - name: mirror
         inline:
           hooks:
-            build:
-              cmd: |
-                echo "mirror: build step intentionally skipped"
             post-checkout:
               cmd: |
                 set -e
                 mkdir -p /home/owner/mirror-out
-                cd /home/owner
-                tar czf /home/owner/mirror-out/hello.tar.gz.tmp hello
-                mv /home/owner/mirror-out/hello.tar.gz.tmp /home/owner/mirror-out/hello.tar.gz
+                tar -czf /home/owner/mirror-out/hello.tar.gz.tmp .git
+                mv -f /home/owner/mirror-out/hello.tar.gz.tmp /home/owner/mirror-out/hello.tar.gz
           daemons:
             fileserver:
               run:
@@ -35,11 +31,9 @@ workspaces:
               run:
                 cmd: |
                   set -e
-                  cd /home/owner/hello
                   git pull --ff-only
-                  cd /home/owner
-                  tar czf /home/owner/mirror-out/hello.tar.gz.tmp hello
-                  mv /home/owner/mirror-out/hello.tar.gz.tmp /home/owner/mirror-out/hello.tar.gz
+                  tar -czf /home/owner/mirror-out/hello.tar.gz.tmp .git
+                  mv -f /home/owner/mirror-out/hello.tar.gz.tmp /home/owner/mirror-out/hello.tar.gz
 endpoints:
 - name: mirror
   type: INTERNAL
